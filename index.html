@@ -14,6 +14,7 @@
     <title>ESMERALDA — Dress Collection</title>
     <link href="dist/output.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         ::-webkit-scrollbar { width: 3px; }
         ::-webkit-scrollbar-track { background: #171717; }
@@ -210,6 +211,7 @@
 
         <!-- Dress Grid -->
         <div id="dressGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 fade-in fade-in-2">
+            <div id="loadingMsg" class="col-span-4 text-center py-20 text-[11px] tracking-[0.3em] uppercase text-[#333]">Loading...</div>
         </div>
 
         <!-- Item count -->
@@ -282,239 +284,13 @@
 
     <script>
     // ============================
-    // DRESS DATA
-    // Each dress has multiple images (different angles/details)
+    // SUPABASE
     // ============================
-    const dresses = [
-        {
-            id: 1,
-            name: "Ethereal Veil Gown",
-            style: "Wedding",
-            category: "wedding",
-            thumbnail: "https://images.pexels.com/photos/1488318/pexels-photo-1488318.jpeg?auto=compress&cs=tinysrgb&w=600",
-            images: [
-                "https://images.pexels.com/photos/1488318/pexels-photo-1488318.jpeg?auto=compress&cs=tinysrgb&w=1400",
-                "https://images.unsplash.com/photo-1519741497674-611481863552?w=1400&q=85",
-                "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=1400&q=85",
-                "https://images.pexels.com/photos/3622622/pexels-photo-3622622.jpeg?auto=compress&cs=tinysrgb&w=1400",
-                "https://images.unsplash.com/photo-1460723237483-7a6dc9d0b212?w=1400&q=85",
-                "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=1400&q=85",
-                "https://images.pexels.com/photos/3622608/pexels-photo-3622608.jpeg?auto=compress&cs=tinysrgb&w=1400",
-                "https://images.unsplash.com/photo-1519340241574-2cec6aef0c01?w=1400&q=85",
-                "https://images.unsplash.com/photo-1474552226712-ac0f0961a954?w=1400&q=85",
-                "https://images.unsplash.com/photo-1520854221256-17451cc331bf?w=1400&q=85"
-            ]
-        },
-        {
-            id: 2,
-            name: "Midnight Satin Dress",
-            style: "Evening",
-            category: "evening",
-            thumbnail: "https://images.pexels.com/photos/2681751/pexels-photo-2681751.jpeg?auto=compress&cs=tinysrgb&w=600",
-            images: [
-                "https://images.pexels.com/photos/2681751/pexels-photo-2681751.jpeg?auto=compress&cs=tinysrgb&w=1400",
-                "https://images.unsplash.com/photo-1518622358385-8ea7d0794bf6?w=1400&q=85",
-                "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=1400&q=85",
-                "https://images.pexels.com/photos/2220316/pexels-photo-2220316.jpeg?auto=compress&cs=tinysrgb&w=1400",
-                "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1400&q=85",
-                "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=1400&q=85",
-                "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=1400&q=85",
-                "https://images.pexels.com/photos/1536619/pexels-photo-1536619.jpeg?auto=compress&cs=tinysrgb&w=1400",
-                "https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=1400&q=85",
-                "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=1400&q=85"
-            ]
-        },
-        {
-            id: 3,
-            name: "Pearl Lace Bridal",
-            style: "Wedding",
-            category: "wedding",
-            thumbnail: "https://images.pexels.com/photos/2002717/pexels-photo-2002717.jpeg?auto=compress&cs=tinysrgb&w=600",
-            images: [
-                "https://images.pexels.com/photos/2002717/pexels-photo-2002717.jpeg?auto=compress&cs=tinysrgb&w=1400",
-                "https://images.unsplash.com/photo-1460723237483-7a6dc9d0b212?w=1400&q=85",
-                "https://images.unsplash.com/photo-1594552072238-b8a33785b261?w=1400&q=85",
-                "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=1400&q=85",
-                "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=1400",
-                "https://images.unsplash.com/photo-1519741497674-611481863552?w=1400&q=85",
-                "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=1400&q=85",
-                "https://images.unsplash.com/photo-1518622358385-8ea7d0794bf6?w=1400&q=85",
-                "https://images.unsplash.com/photo-1474552226712-ac0f0961a954?w=1400&q=85",
-                "https://images.unsplash.com/photo-1520854221256-17451cc331bf?w=1400&q=85"
-            ]
-        },
-        {
-            id: 4,
-            name: "Noir Velvet Cocktail",
-            style: "Cocktail",
-            category: "cocktail",
-            thumbnail: "https://images.pexels.com/photos/1462637/pexels-photo-1462637.jpeg?auto=compress&cs=tinysrgb&w=600",
-            images: [
-                "https://images.pexels.com/photos/1462637/pexels-photo-1462637.jpeg?auto=compress&cs=tinysrgb&w=1400",
-                "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1400&q=85",
-                "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=1400&q=85",
-                "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=1400&q=85",
-                "https://images.unsplash.com/photo-1562572159-4efc207f5aff?w=1400&q=85",
-                "https://images.pexels.com/photos/2584269/pexels-photo-2584269.jpeg?auto=compress&cs=tinysrgb&w=1400",
-                "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1400&q=85",
-                "https://images.unsplash.com/photo-1509551388413-e18d0ac5d495?w=1400&q=85",
-                "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=1400&q=85",
-                "https://images.unsplash.com/photo-1434389677669-e08b4cda3a00?w=1400&q=85"
-            ]
-        },
-        {
-            id: 5,
-            name: "Ivory Draped Gown",
-            style: "Evening",
-            category: "evening",
-            thumbnail: "https://images.pexels.com/photos/1035685/pexels-photo-1035685.jpeg?auto=compress&cs=tinysrgb&w=600",
-            images: [
-                "https://images.pexels.com/photos/1035685/pexels-photo-1035685.jpeg?auto=compress&cs=tinysrgb&w=1400",
-                "https://images.unsplash.com/photo-1562572159-4efc207f5aff?w=1400&q=85",
-                "https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=1400&q=85",
-                "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=1400&q=85",
-                "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=1400&q=85",
-                "https://images.unsplash.com/photo-1518622358385-8ea7d0794bf6?w=1400&q=85",
-                "https://images.pexels.com/photos/3622630/pexels-photo-3622630.jpeg?auto=compress&cs=tinysrgb&w=1400",
-                "https://images.unsplash.com/photo-1523264939339-c89f9dadde2e?w=1400&q=85",
-                "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=1400&q=85",
-                "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=1400&q=85"
-            ]
-        },
-        {
-            id: 6,
-            name: "Chiffon Flow Dress",
-            style: "Classic",
-            category: "classic",
-            thumbnail: "https://images.pexels.com/photos/291759/pexels-photo-291759.jpeg?auto=compress&cs=tinysrgb&w=600",
-            images: [
-                "https://images.pexels.com/photos/291759/pexels-photo-291759.jpeg?auto=compress&cs=tinysrgb&w=1400",
-                "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=1400&q=85",
-                "https://images.unsplash.com/photo-1434389677669-e08b4cda3a00?w=1400&q=85",
-                "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1400&q=85",
-                "https://images.unsplash.com/photo-1502716119720-b23a93e5fe1b?w=1400&q=85",
-                "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=1400&q=85",
-                "https://images.unsplash.com/photo-1525507119028-ed4c629a60a3?w=1400&q=85",
-                "https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=1400&q=85",
-                "https://images.unsplash.com/photo-1594552072238-b8a33785b261?w=1400&q=85",
-                "https://images.unsplash.com/photo-1519741497674-611481863552?w=1400&q=85"
-            ]
-        },
-        {
-            id: 7,
-            name: "Silhouette A-Line",
-            style: "Classic",
-            category: "classic",
-            thumbnail: "https://images.pexels.com/photos/1021693/pexels-photo-1021693.jpeg?auto=compress&cs=tinysrgb&w=600",
-            images: [
-                "https://images.pexels.com/photos/1021693/pexels-photo-1021693.jpeg?auto=compress&cs=tinysrgb&w=1400",
-                "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=1400&q=85",
-                "https://images.unsplash.com/photo-1509551388413-e18d0ac5d495?w=1400&q=85",
-                "https://images.unsplash.com/photo-1487222477894-8943e31ef7b2?w=1400&q=85",
-                "https://images.unsplash.com/photo-1518049362265-d5b2a6467637?w=1400&q=85",
-                "https://images.unsplash.com/photo-1562572159-4efc207f5aff?w=1400&q=85",
-                "https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=1400&q=85",
-                "https://images.unsplash.com/photo-1434389677669-e08b4cda3a00?w=1400&q=85",
-                "https://images.unsplash.com/photo-1594552072238-b8a33785b261?w=1400&q=85",
-                "https://images.unsplash.com/photo-1460723237483-7a6dc9d0b212?w=1400&q=85"
-            ]
-        },
-        {
-            id: 8,
-            name: "Sequin Evening Gown",
-            style: "Evening",
-            category: "evening",
-            thumbnail: "https://images.pexels.com/photos/1755428/pexels-photo-1755428.jpeg?auto=compress&cs=tinysrgb&w=600",
-            images: [
-                "https://images.pexels.com/photos/1755428/pexels-photo-1755428.jpeg?auto=compress&cs=tinysrgb&w=1400",
-                "https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=1400&q=85",
-                "https://images.unsplash.com/photo-1509551388413-e18d0ac5d495?w=1400&q=85",
-                "https://images.unsplash.com/photo-1518622358385-8ea7d0794bf6?w=1400&q=85",
-                "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=1400&q=85",
-                "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1400&q=85",
-                "https://cdn.pixabay.com/photo/2017/08/07/14/02/fashion-2604143_1280.jpg",
-                "https://images.unsplash.com/photo-1502716119720-b23a93e5fe1b?w=1400&q=85",
-                "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=1400&q=85",
-                "https://images.unsplash.com/photo-1487222477894-8943e31ef7b2?w=1400&q=85"
-            ]
-        },
-        {
-            id: 9,
-            name: "Tulle Dream Bridal",
-            style: "Wedding",
-            category: "wedding",
-            thumbnail: "https://images.unsplash.com/photo-1519741497674-611481863552?w=600&q=80",
-            images: [
-                "https://images.unsplash.com/photo-1519741497674-611481863552?w=1400&q=85",
-                "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=1400&q=85",
-                "https://images.unsplash.com/photo-1594552072238-b8a33785b261?w=1400&q=85",
-                "https://images.unsplash.com/photo-1518622358385-8ea7d0794bf6?w=1400&q=85",
-                "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=1400&q=85",
-                "https://cdn.pixabay.com/photo/2017/08/01/08/29/woman-2563491_1280.jpg",
-                "https://images.unsplash.com/photo-1460723237483-7a6dc9d0b212?w=1400&q=85",
-                "https://images.unsplash.com/photo-1519340241574-2cec6aef0c01?w=1400&q=85",
-                "https://images.unsplash.com/photo-1474552226712-ac0f0961a954?w=1400&q=85",
-                "https://images.unsplash.com/photo-1520854221256-17451cc331bf?w=1400&q=85"
-            ]
-        },
-        {
-            id: 10,
-            name: "Minimalist Slip Dress",
-            style: "Cocktail",
-            category: "cocktail",
-            thumbnail: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=600&q=80",
-            images: [
-                "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=1400&q=85",
-                "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1400&q=85",
-                "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=1400&q=85",
-                "https://images.unsplash.com/photo-1509551388413-e18d0ac5d495?w=1400&q=85",
-                "https://images.unsplash.com/photo-1525507119028-ed4c629a60a3?w=1400&q=85",
-                "https://cdn.pixabay.com/photo/2018/01/21/14/16/woman-3096664_1280.jpg",
-                "https://images.unsplash.com/photo-1523264939339-c89f9dadde2e?w=1400&q=85",
-                "https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=1400&q=85",
-                "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=1400&q=85",
-                "https://images.unsplash.com/photo-1434389677669-e08b4cda3a00?w=1400&q=85"
-            ]
-        },
-        {
-            id: 11,
-            name: "Grace Column Gown",
-            style: "Classic",
-            category: "classic",
-            thumbnail: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=600&q=80",
-            images: [
-                "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1400&q=85",
-                "https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=1400&q=85",
-                "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=1400&q=85",
-                "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=1400&q=85",
-                "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=1400&q=85",
-                "https://images.unsplash.com/photo-1518622358385-8ea7d0794bf6?w=1400&q=85",
-                "https://images.unsplash.com/photo-1518049362265-d5b2a6467637?w=1400&q=85",
-                "https://images.unsplash.com/photo-1434389677669-e08b4cda3a00?w=1400&q=85",
-                "https://images.unsplash.com/photo-1594552072238-b8a33785b261?w=1400&q=85",
-                "https://images.unsplash.com/photo-1460723237483-7a6dc9d0b212?w=1400&q=85"
-            ]
-        },
-        {
-            id: 12,
-            name: "Embroidered Cocktail",
-            style: "Cocktail",
-            category: "cocktail",
-            thumbnail: "https://images.unsplash.com/photo-1502716119720-b23a93e5fe1b?w=600&q=80",
-            images: [
-                "https://images.unsplash.com/photo-1502716119720-b23a93e5fe1b?w=1400&q=85",
-                "https://images.unsplash.com/photo-1509551388413-e18d0ac5d495?w=1400&q=85",
-                "https://images.unsplash.com/photo-1518622358385-8ea7d0794bf6?w=1400&q=85",
-                "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1400&q=85",
-                "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=1400&q=85",
-                "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=1400&q=85",
-                "https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=1400&q=85",
-                "https://images.unsplash.com/photo-1562572159-4efc207f5aff?w=1400&q=85",
-                "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=1400&q=85",
-                "https://images.unsplash.com/photo-1594552072238-b8a33785b261?w=1400&q=85"
-            ]
-        }
-    ];
+    const SUPABASE_URL = 'https://cdqstqlpaihvexbmjdfd.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkcXN0cWxwYWlodmV4Ym1qZGZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NDQ1NDQsImV4cCI6MjA4OTIyMDU0NH0.4c-ROHG1Qy0s5JPHuBgPpOxbE_j1EljDDswBlTe7NaM';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let dresses = [];
 
     // ============================
     // BUILD GRID
@@ -554,7 +330,52 @@
         itemCountEl.textContent = `Showing ${filtered.length} of ${dresses.length} dresses`;
     }
 
-    buildGrid();
+    // ============================
+    // LOAD FROM SUPABASE
+    // ============================
+    async function loadDressesFromDB() {
+        // 현재 도메인과 일치하는 매장 찾기
+        const hostname = window.location.hostname;
+        const { data: shops } = await sb.from('shops').select('*');
+
+        let shopId = null;
+        if (shops?.length) {
+            const matched = shops.find(s => {
+                if (!s.domain) return false;
+                try {
+                    const h = new URL(s.domain.includes('://') ? s.domain : 'https://' + s.domain).hostname;
+                    return h === hostname;
+                } catch { return s.domain.includes(hostname); }
+            });
+            if (matched) shopId = matched.id;
+        }
+
+        // 드레스 불러오기
+        let dressQuery = sb.from('dresses').select('*').order('created_at');
+        if (shopId) dressQuery = dressQuery.eq('shop_id', shopId);
+        const { data: dressData } = await dressQuery;
+
+        if (!dressData?.length) {
+            document.getElementById('loadingMsg').textContent = '등록된 드레스가 없어요';
+            return;
+        }
+
+        // 이미지 한 번에 불러오기
+        const ids = dressData.map(d => d.id);
+        const { data: imgData } = await sb.from('dress_images').select('*').in('dress_id', ids).order('order');
+
+        dresses = dressData.map(d => {
+            const imgs = (imgData || []).filter(img => img.dress_id === d.id).sort((a, b) => a.order - b.order);
+            const thumb = imgs.find(img => img.is_thumbnail)?.url || imgs[0]?.url || '';
+            return { id: d.id, name: d.name, style: d.style, category: d.category, thumbnail: thumb, images: imgs.map(i => i.url) };
+        }).filter(d => d.images.length > 0);
+
+        const msg = document.getElementById('loadingMsg');
+        if (msg) msg.remove();
+        buildGrid();
+    }
+
+    loadDressesFromDB();
 
     // ============================
     // CATEGORY FILTERING
