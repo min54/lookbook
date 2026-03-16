@@ -79,8 +79,8 @@
         }
 
         .slide-image {
-            transition: opacity 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-                        transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            transition: opacity 3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                        transform 3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
         .slide-image.entering {
             opacity: 0;
@@ -91,6 +91,7 @@
             transform: scale(1);
         }
         .slide-image.exiting {
+            transition: opacity 2s ease, transform 2s ease !important;
             opacity: 0;
             transform: scale(0.98);
         }
@@ -130,16 +131,16 @@
 
         /* Fade in for page load */
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
+            from { opacity: 0; transform: translateY(6px); }
             to { opacity: 1; transform: translateY(0); }
         }
         .fade-in {
-            animation: fadeIn 0.6s ease forwards;
+            animation: fadeIn 8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
             opacity: 0;
         }
-        .fade-in-1 { animation-delay: 0.1s; }
-        .fade-in-2 { animation-delay: 0.2s; }
-        .fade-in-3 { animation-delay: 0.3s; }
+        .fade-in-1 { animation-delay: 0.5s; }
+        .fade-in-2 { animation-delay: 1.5s; }
+        .fade-in-3 { animation-delay: 3s; }
 
         /* Auto-play indicator */
         @keyframes autoplayPulse {
@@ -161,6 +162,29 @@
     </style>
 </head>
 <body class="bg-[#0a0a0a] text-white antialiased min-h-screen">
+
+    <!-- Background Music -->
+    <audio id="bgMusic" src="music/esmeralda.mp3" loop preload="auto"></audio>
+
+    <!-- Splash Screen -->
+    <div id="splashScreen" class="fixed inset-0 z-50 bg-[#0a0a0a] flex flex-col items-center justify-center cursor-pointer" onclick="dismissSplash()">
+        <p class="font-serif text-4xl md:text-6xl tracking-[0.2em] text-white mb-6 fade-in fade-in-1">MONO</p>
+        <p class="text-[10px] tracking-[0.5em] uppercase text-[#525252] mb-16 fade-in fade-in-2">Dress Collection</p>
+        <div class="fade-in fade-in-3 flex flex-col items-center gap-3">
+            <div class="w-px h-8 bg-white/20"></div>
+            <p class="text-[10px] tracking-[0.4em] uppercase text-[#404040]">Touch to enter</p>
+        </div>
+    </div>
+
+    <!-- Music Toggle Button -->
+    <button id="musicToggle" onclick="toggleMusic()" class="fixed bottom-5 right-5 z-40 w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition-all">
+        <svg id="musicIconOn" class="w-4 h-4 text-white/50" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M9 18V5l12-2v13M9 18c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-2c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z"/>
+        </svg>
+        <svg id="musicIconOff" class="w-4 h-4 text-white/20 hidden" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M9 18V5l12-2v13M9 18c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-2c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM1 1l22 22"/>
+        </svg>
+    </button>
 
     <!-- ===== Top Bar (minimal) ===== -->
     <header class="fixed top-0 left-0 right-0 z-30 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-[#262626]/50">
@@ -265,15 +289,15 @@
             name: "Ethereal Veil Gown",
             style: "Wedding",
             category: "wedding",
-            thumbnail: "https://images.unsplash.com/photo-1594552072238-b8a33785b261?w=600&q=80",
+            thumbnail: "https://images.pexels.com/photos/1488318/pexels-photo-1488318.jpeg?auto=compress&cs=tinysrgb&w=600",
             images: [
-                "https://images.unsplash.com/photo-1594552072238-b8a33785b261?w=1400&q=85",
+                "https://images.pexels.com/photos/1488318/pexels-photo-1488318.jpeg?auto=compress&cs=tinysrgb&w=1400",
                 "https://images.unsplash.com/photo-1519741497674-611481863552?w=1400&q=85",
                 "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=1400&q=85",
-                "https://images.unsplash.com/photo-1607881020833-2e0b26474e20?w=1400&q=85",
+                "https://images.pexels.com/photos/3622622/pexels-photo-3622622.jpeg?auto=compress&cs=tinysrgb&w=1400",
                 "https://images.unsplash.com/photo-1460723237483-7a6dc9d0b212?w=1400&q=85",
-                "https://images.unsplash.com/photo-1549416878-b6807b1d9e2d?w=1400&q=85",
                 "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=1400&q=85",
+                "https://images.pexels.com/photos/3622608/pexels-photo-3622608.jpeg?auto=compress&cs=tinysrgb&w=1400",
                 "https://images.unsplash.com/photo-1519340241574-2cec6aef0c01?w=1400&q=85",
                 "https://images.unsplash.com/photo-1474552226712-ac0f0961a954?w=1400&q=85",
                 "https://images.unsplash.com/photo-1520854221256-17451cc331bf?w=1400&q=85"
@@ -284,17 +308,17 @@
             name: "Midnight Satin Dress",
             style: "Evening",
             category: "evening",
-            thumbnail: "https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=600&q=80",
+            thumbnail: "https://images.pexels.com/photos/2681751/pexels-photo-2681751.jpeg?auto=compress&cs=tinysrgb&w=600",
             images: [
-                "https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=1400&q=85",
+                "https://images.pexels.com/photos/2681751/pexels-photo-2681751.jpeg?auto=compress&cs=tinysrgb&w=1400",
                 "https://images.unsplash.com/photo-1518622358385-8ea7d0794bf6?w=1400&q=85",
                 "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=1400&q=85",
-                "https://images.unsplash.com/photo-1562572159-4efc207f5aff?w=1400&q=85",
+                "https://images.pexels.com/photos/2220316/pexels-photo-2220316.jpeg?auto=compress&cs=tinysrgb&w=1400",
                 "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1400&q=85",
                 "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=1400&q=85",
                 "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=1400&q=85",
-                "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=1400&q=85",
-                "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=1400&q=85",
+                "https://images.pexels.com/photos/1536619/pexels-photo-1536619.jpeg?auto=compress&cs=tinysrgb&w=1400",
+                "https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=1400&q=85",
                 "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=1400&q=85"
             ]
         },
@@ -303,16 +327,16 @@
             name: "Pearl Lace Bridal",
             style: "Wedding",
             category: "wedding",
-            thumbnail: "https://images.unsplash.com/photo-1519340241574-2cec6aef0c01?w=600&q=80",
+            thumbnail: "https://images.pexels.com/photos/2002717/pexels-photo-2002717.jpeg?auto=compress&cs=tinysrgb&w=600",
             images: [
-                "https://images.unsplash.com/photo-1519340241574-2cec6aef0c01?w=1400&q=85",
+                "https://images.pexels.com/photos/2002717/pexels-photo-2002717.jpeg?auto=compress&cs=tinysrgb&w=1400",
                 "https://images.unsplash.com/photo-1460723237483-7a6dc9d0b212?w=1400&q=85",
-                "https://images.unsplash.com/photo-1549416878-b6807b1d9e2d?w=1400&q=85",
-                "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=1400&q=85",
                 "https://images.unsplash.com/photo-1594552072238-b8a33785b261?w=1400&q=85",
+                "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=1400&q=85",
+                "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=1400",
                 "https://images.unsplash.com/photo-1519741497674-611481863552?w=1400&q=85",
                 "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=1400&q=85",
-                "https://images.unsplash.com/photo-1607881020833-2e0b26474e20?w=1400&q=85",
+                "https://images.unsplash.com/photo-1518622358385-8ea7d0794bf6?w=1400&q=85",
                 "https://images.unsplash.com/photo-1474552226712-ac0f0961a954?w=1400&q=85",
                 "https://images.unsplash.com/photo-1520854221256-17451cc331bf?w=1400&q=85"
             ]
@@ -322,15 +346,15 @@
             name: "Noir Velvet Cocktail",
             style: "Cocktail",
             category: "cocktail",
-            thumbnail: "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=600&q=80",
+            thumbnail: "https://images.pexels.com/photos/1462637/pexels-photo-1462637.jpeg?auto=compress&cs=tinysrgb&w=600",
             images: [
-                "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=1400&q=85",
+                "https://images.pexels.com/photos/1462637/pexels-photo-1462637.jpeg?auto=compress&cs=tinysrgb&w=1400",
                 "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1400&q=85",
                 "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=1400&q=85",
                 "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=1400&q=85",
-                "https://images.unsplash.com/photo-1485462537746-965f33f7f6a7?w=1400&q=85",
-                "https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=1400&q=85",
                 "https://images.unsplash.com/photo-1562572159-4efc207f5aff?w=1400&q=85",
+                "https://images.pexels.com/photos/2584269/pexels-photo-2584269.jpeg?auto=compress&cs=tinysrgb&w=1400",
+                "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1400&q=85",
                 "https://images.unsplash.com/photo-1509551388413-e18d0ac5d495?w=1400&q=85",
                 "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=1400&q=85",
                 "https://images.unsplash.com/photo-1434389677669-e08b4cda3a00?w=1400&q=85"
@@ -341,16 +365,16 @@
             name: "Ivory Draped Gown",
             style: "Evening",
             category: "evening",
-            thumbnail: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=600&q=80",
+            thumbnail: "https://images.pexels.com/photos/1035685/pexels-photo-1035685.jpeg?auto=compress&cs=tinysrgb&w=600",
             images: [
-                "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=1400&q=85",
-                "https://images.unsplash.com/photo-1485462537746-965f33f7f6a7?w=1400&q=85",
-                "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=1400&q=85",
-                "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=1400&q=85",
-                "https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=1400&q=85",
-                "https://images.unsplash.com/photo-1518622358385-8ea7d0794bf6?w=1400&q=85",
-                "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=1400&q=85",
+                "https://images.pexels.com/photos/1035685/pexels-photo-1035685.jpeg?auto=compress&cs=tinysrgb&w=1400",
                 "https://images.unsplash.com/photo-1562572159-4efc207f5aff?w=1400&q=85",
+                "https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=1400&q=85",
+                "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=1400&q=85",
+                "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=1400&q=85",
+                "https://images.unsplash.com/photo-1518622358385-8ea7d0794bf6?w=1400&q=85",
+                "https://images.pexels.com/photos/3622630/pexels-photo-3622630.jpeg?auto=compress&cs=tinysrgb&w=1400",
+                "https://images.unsplash.com/photo-1523264939339-c89f9dadde2e?w=1400&q=85",
                 "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=1400&q=85",
                 "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=1400&q=85"
             ]
@@ -360,16 +384,16 @@
             name: "Chiffon Flow Dress",
             style: "Classic",
             category: "classic",
-            thumbnail: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=600&q=80",
+            thumbnail: "https://images.pexels.com/photos/291759/pexels-photo-291759.jpeg?auto=compress&cs=tinysrgb&w=600",
             images: [
-                "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=1400&q=85",
+                "https://images.pexels.com/photos/291759/pexels-photo-291759.jpeg?auto=compress&cs=tinysrgb&w=1400",
                 "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=1400&q=85",
                 "https://images.unsplash.com/photo-1434389677669-e08b4cda3a00?w=1400&q=85",
                 "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1400&q=85",
-                "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=1400&q=85",
+                "https://images.unsplash.com/photo-1502716119720-b23a93e5fe1b?w=1400&q=85",
                 "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=1400&q=85",
-                "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=1400&q=85",
-                "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=1400&q=85",
+                "https://images.unsplash.com/photo-1525507119028-ed4c629a60a3?w=1400&q=85",
+                "https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=1400&q=85",
                 "https://images.unsplash.com/photo-1594552072238-b8a33785b261?w=1400&q=85",
                 "https://images.unsplash.com/photo-1519741497674-611481863552?w=1400&q=85"
             ]
@@ -379,17 +403,17 @@
             name: "Silhouette A-Line",
             style: "Classic",
             category: "classic",
-            thumbnail: "https://images.unsplash.com/photo-1518622358385-8ea7d0794bf6?w=600&q=80",
+            thumbnail: "https://images.pexels.com/photos/1021693/pexels-photo-1021693.jpeg?auto=compress&cs=tinysrgb&w=600",
             images: [
-                "https://images.unsplash.com/photo-1518622358385-8ea7d0794bf6?w=1400&q=85",
+                "https://images.pexels.com/photos/1021693/pexels-photo-1021693.jpeg?auto=compress&cs=tinysrgb&w=1400",
                 "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=1400&q=85",
                 "https://images.unsplash.com/photo-1509551388413-e18d0ac5d495?w=1400&q=85",
+                "https://images.unsplash.com/photo-1487222477894-8943e31ef7b2?w=1400&q=85",
+                "https://images.unsplash.com/photo-1518049362265-d5b2a6467637?w=1400&q=85",
                 "https://images.unsplash.com/photo-1562572159-4efc207f5aff?w=1400&q=85",
-                "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=1400&q=85",
-                "https://images.unsplash.com/photo-1485462537746-965f33f7f6a7?w=1400&q=85",
                 "https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=1400&q=85",
                 "https://images.unsplash.com/photo-1434389677669-e08b4cda3a00?w=1400&q=85",
-                "https://images.unsplash.com/photo-1549416878-b6807b1d9e2d?w=1400&q=85",
+                "https://images.unsplash.com/photo-1594552072238-b8a33785b261?w=1400&q=85",
                 "https://images.unsplash.com/photo-1460723237483-7a6dc9d0b212?w=1400&q=85"
             ]
         },
@@ -398,18 +422,18 @@
             name: "Sequin Evening Gown",
             style: "Evening",
             category: "evening",
-            thumbnail: "https://images.unsplash.com/photo-1562572159-4efc207f5aff?w=600&q=80",
+            thumbnail: "https://images.pexels.com/photos/1755428/pexels-photo-1755428.jpeg?auto=compress&cs=tinysrgb&w=600",
             images: [
-                "https://images.unsplash.com/photo-1562572159-4efc207f5aff?w=1400&q=85",
+                "https://images.pexels.com/photos/1755428/pexels-photo-1755428.jpeg?auto=compress&cs=tinysrgb&w=1400",
                 "https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=1400&q=85",
-                "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=1400&q=85",
+                "https://images.unsplash.com/photo-1509551388413-e18d0ac5d495?w=1400&q=85",
                 "https://images.unsplash.com/photo-1518622358385-8ea7d0794bf6?w=1400&q=85",
                 "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=1400&q=85",
                 "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1400&q=85",
-                "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=1400&q=85",
-                "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=1400&q=85",
-                "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=1400&q=85",
-                "https://images.unsplash.com/photo-1485462537746-965f33f7f6a7?w=1400&q=85"
+                "https://cdn.pixabay.com/photo/2017/08/07/14/02/fashion-2604143_1280.jpg",
+                "https://images.unsplash.com/photo-1502716119720-b23a93e5fe1b?w=1400&q=85",
+                "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=1400&q=85",
+                "https://images.unsplash.com/photo-1487222477894-8943e31ef7b2?w=1400&q=85"
             ]
         },
         {
@@ -422,9 +446,9 @@
                 "https://images.unsplash.com/photo-1519741497674-611481863552?w=1400&q=85",
                 "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=1400&q=85",
                 "https://images.unsplash.com/photo-1594552072238-b8a33785b261?w=1400&q=85",
-                "https://images.unsplash.com/photo-1607881020833-2e0b26474e20?w=1400&q=85",
+                "https://images.unsplash.com/photo-1518622358385-8ea7d0794bf6?w=1400&q=85",
                 "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=1400&q=85",
-                "https://images.unsplash.com/photo-1549416878-b6807b1d9e2d?w=1400&q=85",
+                "https://cdn.pixabay.com/photo/2017/08/01/08/29/woman-2563491_1280.jpg",
                 "https://images.unsplash.com/photo-1460723237483-7a6dc9d0b212?w=1400&q=85",
                 "https://images.unsplash.com/photo-1519340241574-2cec6aef0c01?w=1400&q=85",
                 "https://images.unsplash.com/photo-1474552226712-ac0f0961a954?w=1400&q=85",
@@ -441,10 +465,10 @@
                 "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=1400&q=85",
                 "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1400&q=85",
                 "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=1400&q=85",
-                "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=1400&q=85",
-                "https://images.unsplash.com/photo-1485462537746-965f33f7f6a7?w=1400&q=85",
-                "https://images.unsplash.com/photo-1562572159-4efc207f5aff?w=1400&q=85",
                 "https://images.unsplash.com/photo-1509551388413-e18d0ac5d495?w=1400&q=85",
+                "https://images.unsplash.com/photo-1525507119028-ed4c629a60a3?w=1400&q=85",
+                "https://cdn.pixabay.com/photo/2018/01/21/14/16/woman-3096664_1280.jpg",
+                "https://images.unsplash.com/photo-1523264939339-c89f9dadde2e?w=1400&q=85",
                 "https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=1400&q=85",
                 "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=1400&q=85",
                 "https://images.unsplash.com/photo-1434389677669-e08b4cda3a00?w=1400&q=85"
@@ -455,17 +479,17 @@
             name: "Grace Column Gown",
             style: "Classic",
             category: "classic",
-            thumbnail: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=600&q=80",
+            thumbnail: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=600&q=80",
             images: [
-                "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=1400&q=85",
-                "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=1400&q=85",
+                "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1400&q=85",
+                "https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=1400&q=85",
                 "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=1400&q=85",
-                "https://images.unsplash.com/photo-1485462537746-965f33f7f6a7?w=1400&q=85",
+                "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=1400&q=85",
                 "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=1400&q=85",
                 "https://images.unsplash.com/photo-1518622358385-8ea7d0794bf6?w=1400&q=85",
-                "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=1400&q=85",
+                "https://images.unsplash.com/photo-1518049362265-d5b2a6467637?w=1400&q=85",
                 "https://images.unsplash.com/photo-1434389677669-e08b4cda3a00?w=1400&q=85",
-                "https://images.unsplash.com/photo-1549416878-b6807b1d9e2d?w=1400&q=85",
+                "https://images.unsplash.com/photo-1594552072238-b8a33785b261?w=1400&q=85",
                 "https://images.unsplash.com/photo-1460723237483-7a6dc9d0b212?w=1400&q=85"
             ]
         },
@@ -474,17 +498,17 @@
             name: "Embroidered Cocktail",
             style: "Cocktail",
             category: "cocktail",
-            thumbnail: "https://images.unsplash.com/photo-1509551388413-e18d0ac5d495?w=600&q=80",
+            thumbnail: "https://images.unsplash.com/photo-1502716119720-b23a93e5fe1b?w=600&q=80",
             images: [
+                "https://images.unsplash.com/photo-1502716119720-b23a93e5fe1b?w=1400&q=85",
                 "https://images.unsplash.com/photo-1509551388413-e18d0ac5d495?w=1400&q=85",
-                "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=1400&q=85",
                 "https://images.unsplash.com/photo-1518622358385-8ea7d0794bf6?w=1400&q=85",
                 "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1400&q=85",
                 "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=1400&q=85",
                 "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=1400&q=85",
                 "https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=1400&q=85",
                 "https://images.unsplash.com/photo-1562572159-4efc207f5aff?w=1400&q=85",
-                "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=1400&q=85",
+                "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=1400&q=85",
                 "https://images.unsplash.com/photo-1594552072238-b8a33785b261?w=1400&q=85"
             ]
         }
@@ -605,6 +629,13 @@
         slideshow.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
 
+        // 전체화면
+        if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen().catch(() => {});
+        } else if (document.documentElement.webkitRequestFullscreen) {
+            document.documentElement.webkitRequestFullscreen();
+        }
+
         // Preload all images
         dress.images.forEach(src => {
             const img = new Image();
@@ -637,7 +668,7 @@
                         ssMainImage.classList.add('active');
                     });
                 });
-            }, 250);
+            }, 1000);
         } else {
             ssMainImage.src = images[currentSlide];
             ssMainImage.classList.add('active');
@@ -680,12 +711,20 @@
         clearInterval(autoplayTimer);
         isAutoplay = false;
         updateAutoplayUI();
+
+        // 전체화면 해제
+        if (document.exitFullscreen && document.fullscreenElement) {
+            document.exitFullscreen().catch(() => {});
+        } else if (document.webkitExitFullscreen && document.webkitFullscreenElement) {
+            document.webkitExitFullscreen();
+        }
     }
 
     function toggleAutoplay() {
         isAutoplay = !isAutoplay;
         if (isAutoplay) {
-            autoplayTimer = setInterval(nextSlide, 3500);
+            nextSlide();
+            autoplayTimer = setInterval(nextSlide, 7000);
         } else {
             clearInterval(autoplayTimer);
         }
@@ -719,14 +758,31 @@
         if (e.key === ' ') { e.preventDefault(); toggleAutoplay(); }
     });
 
-    // Touch swipe (tablet)
+    // Touch swipe (tablet) - 부드러운 스와이프
     let touchStartX = 0;
+    let touchCurrentX = 0;
+    let isSwiping = false;
+
     slideshow.addEventListener('touchstart', (e) => {
-        touchStartX = e.changedTouches[0].screenX;
+        touchStartX = e.changedTouches[0].clientX;
+        touchCurrentX = touchStartX;
+        isSwiping = true;
+        ssMainImage.style.transition = 'none';
+    }, { passive: true });
+
+    slideshow.addEventListener('touchmove', (e) => {
+        if (!isSwiping) return;
+        touchCurrentX = e.changedTouches[0].clientX;
+        const diff = touchCurrentX - touchStartX;
+        ssMainImage.style.transform = `translateX(${diff * 0.4}px) scale(1)`;
     }, { passive: true });
 
     slideshow.addEventListener('touchend', (e) => {
-        const diff = touchStartX - e.changedTouches[0].screenX;
+        if (!isSwiping) return;
+        isSwiping = false;
+        ssMainImage.style.transition = '';
+        ssMainImage.style.transform = '';
+        const diff = touchStartX - e.changedTouches[0].clientX;
         if (Math.abs(diff) > 60) {
             diff > 0 ? nextSlide() : prevSlide();
         }
@@ -736,6 +792,41 @@
     slideshow.addEventListener('click', (e) => {
         if (e.target === slideshow) closeSlideshow();
     });
+
+    // ============================
+    // BACKGROUND MUSIC
+    // ============================
+    const bgMusic = document.getElementById('bgMusic');
+    const musicIconOn = document.getElementById('musicIconOn');
+    const musicIconOff = document.getElementById('musicIconOff');
+    let musicPlaying = false;
+
+    function toggleMusic() {
+        if (musicPlaying) {
+            bgMusic.pause();
+            musicIconOn.classList.add('hidden');
+            musicIconOff.classList.remove('hidden');
+            musicPlaying = false;
+        } else {
+            bgMusic.play();
+            musicIconOn.classList.remove('hidden');
+            musicIconOff.classList.add('hidden');
+            musicPlaying = true;
+        }
+    }
+
+    function dismissSplash() {
+        const splash = document.getElementById('splashScreen');
+        splash.style.transition = 'opacity 1.5s ease';
+        splash.style.opacity = '0';
+        setTimeout(() => splash.style.display = 'none', 800);
+
+        bgMusic.play().then(() => {
+            musicPlaying = true;
+            musicIconOn.classList.remove('hidden');
+            musicIconOff.classList.add('hidden');
+        }).catch(() => {});
+    }
 
     </script>
 </body>
