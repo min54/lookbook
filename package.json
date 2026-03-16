@@ -1,0 +1,17 @@
+{
+  "name": "lookbook",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "npx @tailwindcss/cli -i src/input.css -o dist/output.css --minify",
+    "dev": "npx @tailwindcss/cli -i src/input.css -o dist/output.css --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@tailwindcss/cli": "^4.2.1",
+    "tailwindcss": "^4.2.1"
+  }
+}

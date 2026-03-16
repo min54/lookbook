@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MONO — Dress Collection</title>
+    <link href="dist/output.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        ::-webkit-scrollbar { width: 3px; }
+        ::-webkit-scrollbar-track { background: #171717; }
+        ::-webkit-scrollbar-thumb { background: #404040; border-radius: 2px; }
+        html { scroll-behavior: smooth; }
+
+        * { font-family: 'Inter', sans-serif; }
+        .font-serif { font-family: 'Playfair Display', serif; }
+
+        /* ===== Dress Card ===== */
+        .dress-card {
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .dress-card img {
+            transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .dress-card:hover img {
+            transform: scale(1.04);
+        }
+        .dress-card .card-info {
+            opacity: 0;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            transform: translateY(10px);
+        }
+        .dress-card:hover .card-info {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ===== Filter Buttons ===== */
+        .filter-btn {
+            position: relative;
+            transition: color 0.3s ease;
+        }
+        .filter-btn::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            width: 0;
+            height: 1px;
+            background: white;
+            transition: width 0.3s ease, left 0.3s ease;
+        }
+        .filter-btn.active::after {
+            width: 100%;
+            left: 0;
+        }
+        .filter-btn:hover::after {
+            width: 100%;
+            left: 0;
+        }
+
+        /* ===== Grid Filter Animation ===== */
+        .dress-card {
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        /* ===== Fullscreen Slideshow ===== */
+        .slideshow-overlay {
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+        }
+
+        .slide-image {
+            transition: opacity 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                        transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .slide-image.entering {
+            opacity: 0;
+            transform: scale(1.02);
+        }
+        .slide-image.active {
+            opacity: 1;
+            transform: scale(1);
+        }
+        .slide-image.exiting {
+            opacity: 0;
+            transform: scale(0.98);
+        }
+
+        /* Thumbnail strip */
+        .thumb-strip {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .thumb-strip::-webkit-scrollbar { display: none; }
+
+        .thumb-item {
+            transition: opacity 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
+            flex-shrink: 0;
+        }
+        .thumb-item.active {
+            border-color: white !important;
+            opacity: 1 !important;
+        }
+        .thumb-item:not(.active) {
+            opacity: 0.4;
+        }
+        .thumb-item:hover {
+            opacity: 0.8;
+            transform: scale(1.05);
+        }
+
+        /* Progress bar */
+        .progress-bar {
+            transition: width 0.3s ease;
+        }
+
+        /* Slide counter */
+        .slide-counter {
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Fade in for page load */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.6s ease forwards;
+            opacity: 0;
+        }
+        .fade-in-1 { animation-delay: 0.1s; }
+        .fade-in-2 { animation-delay: 0.2s; }
+        .fade-in-3 { animation-delay: 0.3s; }
+
+        /* Auto-play indicator */
+        @keyframes autoplayPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        .autoplay-active {
+            animation: autoplayPulse 2s ease-in-out infinite;
+        }
+
+        /* Ken Burns subtle effect */
+        @keyframes kenBurns {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.05); }
+        }
+        .ken-burns {
+            animation: kenBurns 8s ease-in-out alternate infinite;
+        }
+    </style>
+</head>
+<body class="bg-[#0a0a0a] text-white antialiased min-h-screen">
+
+    <!-- ===== Top Bar (minimal) ===== -->
+    <header class="fixed top-0 left-0 right-0 z-30 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-[#262626]/50">
+        <div class="max-w-[1600px] mx-auto px-6 md:px-10 flex items-center justify-between h-16">
+            <span class="font-serif text-xl tracking-wider">MONO</span>
+            <span class="text-[10px] tracking-[0.4em] uppercase text-[#737373]">Dress Collection</span>
+        </div>
+    </header>
+
+    <!-- ===== Main Grid View ===== -->
+    <main id="gridView" class="pt-24 pb-16 px-4 md:px-8 lg:px-12 max-w-[1600px] mx-auto">
+
+        <!-- Category Filters -->
+        <div class="flex items-center justify-center gap-6 md:gap-10 mb-12 fade-in fade-in-1">
+            <button class="filter-btn active text-[11px] tracking-[0.3em] uppercase text-white pb-1" data-filter="all">All</button>
+            <button class="filter-btn text-[11px] tracking-[0.3em] uppercase text-[#737373] pb-1" data-filter="wedding">Wedding</button>
+            <button class="filter-btn text-[11px] tracking-[0.3em] uppercase text-[#737373] pb-1" data-filter="evening">Evening</button>
+            <button class="filter-btn text-[11px] tracking-[0.3em] uppercase text-[#737373] pb-1" data-filter="cocktail">Cocktail</button>
+            <button class="filter-btn text-[11px] tracking-[0.3em] uppercase text-[#737373] pb-1" data-filter="classic">Classic</button>
+        </div>
+
+        <!-- Dress Grid -->
+        <div id="dressGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 fade-in fade-in-2">
+        </div>
+
+        <!-- Item count -->
+        <div class="text-center mt-10 fade-in fade-in-3">
+            <p id="itemCount" class="text-[11px] tracking-[0.3em] uppercase text-[#525252]"></p>
+        </div>
+    </main>
+
+    <!-- ===== Fullscreen Slideshow ===== -->
+    <div id="slideshow" class="fixed inset-0 z-50 hidden slideshow-overlay bg-[#0a0a0a]/97">
+
+        <!-- Close & Back -->
+        <button id="ssClose" class="absolute top-5 right-5 z-20 w-11 h-11 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors">
+            <svg class="w-5 h-5 text-white/70" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+
+        <!-- Dress name & info (top) -->
+        <div class="absolute top-5 left-5 md:left-10 z-20">
+            <h2 id="ssDressName" class="font-serif text-lg md:text-2xl tracking-wide"></h2>
+            <p id="ssDressStyle" class="text-[10px] tracking-[0.3em] uppercase text-[#737373] mt-1"></p>
+        </div>
+
+        <!-- Main Image Area -->
+        <div class="absolute inset-0 flex items-center justify-center px-4 md:px-20 pt-20 pb-36">
+            <div id="ssImageContainer" class="relative w-full h-full flex items-center justify-center">
+                <img id="ssMainImage" src="" alt="" class="slide-image active max-w-full max-h-full object-contain">
+            </div>
+        </div>
+
+        <!-- Nav arrows -->
+        <button id="ssPrev" class="absolute left-3 md:left-6 top-1/2 -translate-y-1/2 z-20 w-12 h-12 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors group">
+            <svg class="w-5 h-5 text-white/50 group-hover:text-white transition-colors" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+            </svg>
+        </button>
+        <button id="ssNext" class="absolute right-3 md:right-6 top-1/2 -translate-y-1/2 z-20 w-12 h-12 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors group">
+            <svg class="w-5 h-5 text-white/50 group-hover:text-white transition-colors" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+            </svg>
+        </button>
+
+        <!-- Bottom Panel: Thumbnails + Controls -->
+        <div class="absolute bottom-0 left-0 right-0 z-20 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/80 to-transparent pt-16 pb-6 px-4 md:px-10">
+
+            <!-- Progress bar -->
+            <div class="w-full max-w-md mx-auto h-px bg-[#262626] mb-5 rounded-full overflow-hidden">
+                <div id="ssProgress" class="progress-bar h-full bg-white/60 rounded-full" style="width: 0%"></div>
+            </div>
+
+            <!-- Thumbnail strip -->
+            <div class="flex justify-center mb-4">
+                <div id="ssThumbStrip" class="thumb-strip flex gap-2 md:gap-3 overflow-x-auto px-4 max-w-4xl">
+                </div>
+            </div>
+
+            <!-- Counter + Autoplay -->
+            <div class="flex items-center justify-center gap-6">
+                <span id="ssCounter" class="slide-counter text-[11px] tracking-[0.2em] text-[#737373]"></span>
+                <button id="ssAutoplay" class="text-[10px] tracking-[0.3em] uppercase text-[#525252] hover:text-white transition-colors flex items-center gap-2">
+                    <span id="ssPlayIcon" class="w-3 h-3 border border-current rounded-full flex items-center justify-center">
+                        <svg class="w-1.5 h-1.5 ml-px" fill="currentColor" viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
+                    </span>
+                    <span id="ssPlayLabel">Auto</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ============================
+    // DRESS DATA
+    // Each dress has multiple images (different angles/details)
+    // ============================
+    const dresses = [
+        {
+            id: 1,
+            name: "Ethereal Veil Gown",
+            style: "Wedding",
+            category: "wedding",
+            thumbnail: "https://images.unsplash.com/photo-1594552072238-b8a33785b261?w=600&q=80",
+            images: [
+                "https://images.unsplash.com/photo-1594552072238-b8a33785b261?w=1400&q=85",
+                "https://images.unsplash.com/photo-1519741497674-611481863552?w=1400&q=85",
+                "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=1400&q=85",
+                "https://images.unsplash.com/photo-1607881020833-2e0b26474e20?w=1400&q=85",
+                "https://images.unsplash.com/photo-1460723237483-7a6dc9d0b212?w=1400&q=85",
+                "https://images.unsplash.com/photo-1549416878-b6807b1d9e2d?w=1400&q=85",
+                "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=1400&q=85",
+                "https://images.unsplash.com/photo-1519340241574-2cec6aef0c01?w=1400&q=85",
+                "https://images.unsplash.com/photo-1474552226712-ac0f0961a954?w=1400&q=85",
+                "https://images.unsplash.com/photo-1520854221256-17451cc331bf?w=1400&q=85"
+            ]
+        },
+        {
+            id: 2,
+            name: "Midnight Satin Dress",
+            style: "Evening",
+            category: "evening",
+            thumbnail: "https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=600&q=80",
+            images: [
+                "https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=1400&q=85",
+                "https://images.unsplash.com/photo-1518622358385-8ea7d0794bf6?w=1400&q=85",
+                "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=1400&q=85",
+                "https://images.unsplash.com/photo-1562572159-4efc207f5aff?w=1400&q=85",
+                "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1400&q=85",
+                "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=1400&q=85",
+                "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=1400&q=85",
+                "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=1400&q=85",
+                "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=1400&q=85",
+                "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=1400&q=85"
+            ]
+        },
+        {
+            id: 3,
+            name: "Pearl Lace Bridal",
+            style: "Wedding",
+            category: "wedding",
+            thumbnail: "https://images.unsplash.com/photo-1519340241574-2cec6aef0c01?w=600&q=80",
+            images: [
+                "https://images.unsplash.com/photo-1519340241574-2cec6aef0c01?w=1400&q=85",
+                "https://images.unsplash.com/photo-1460723237483-7a6dc9d0b212?w=1400&q=85",
+                "https://images.unsplash.com/photo-1549416878-b6807b1d9e2d?w=1400&q=85",
+                "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=1400&q=85",
+                "https://images.unsplash.com/photo-1594552072238-b8a33785b261?w=1400&q=85",
+                "https://images.unsplash.com/photo-1519741497674-611481863552?w=1400&q=85",
+                "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=1400&q=85",
+                "https://images.unsplash.com/photo-1607881020833-2e0b26474e20?w=1400&q=85",
+                "https://images.unsplash.com/photo-1474552226712-ac0f0961a954?w=1400&q=85",
+                "https://images.unsplash.com/photo-1520854221256-17451cc331bf?w=1400&q=85"
+            ]
+        },
+        {
+            id: 4,
+            name: "Noir Velvet Cocktail",
+            style: "Cocktail",
+            category: "cocktail",
+            thumbnail: "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=600&q=80",
+            images: [
+                "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=1400&q=85",
+                "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1400&q=85",
+                "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=1400&q=85",
+                "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=1400&q=85",
+                "https://images.unsplash.com/photo-1485462537746-965f33f7f6a7?w=1400&q=85",
+                "https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=1400&q=85",
+                "https://images.unsplash.com/photo-1562572159-4efc207f5aff?w=1400&q=85",
+                "https://images.unsplash.com/photo-1509551388413-e18d0ac5d495?w=1400&q=85",
+                "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=1400&q=85",
+                "https://images.unsplash.com/photo-1434389677669-e08b4cda3a00?w=1400&q=85"
+            ]
+        },
+        {
+            id: 5,
+            name: "Ivory Draped Gown",
+            style: "Evening",
+            category: "evening",
+            thumbnail: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=600&q=80",
+            images: [
+                "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=1400&q=85",
+                "https://images.unsplash.com/photo-1485462537746-965f33f7f6a7?w=1400&q=85",
+                "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=1400&q=85",
+                "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=1400&q=85",
+                "https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=1400&q=85",
+                "https://images.unsplash.com/photo-1518622358385-8ea7d0794bf6?w=1400&q=85",
+                "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=1400&q=85",
+                "https://images.unsplash.com/photo-1562572159-4efc207f5aff?w=1400&q=85",
+                "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=1400&q=85",
+                "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=1400&q=85"
+            ]
+        },
+        {
+            id: 6,
+            name: "Chiffon Flow Dress",
+            style: "Classic",
+            category: "classic",
+            thumbnail: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=600&q=80",
+            images: [
+                "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=1400&q=85",
+                "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=1400&q=85",
+                "https://images.unsplash.com/photo-1434389677669-e08b4cda3a00?w=1400&q=85",
+                "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1400&q=85",
+                "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=1400&q=85",
+                "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=1400&q=85",
+                "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=1400&q=85",
+                "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=1400&q=85",
+                "https://images.unsplash.com/photo-1594552072238-b8a33785b261?w=1400&q=85",
+                "https://images.unsplash.com/photo-1519741497674-611481863552?w=1400&q=85"
+            ]
+        },
+        {
+            id: 7,
+            name: "Silhouette A-Line",
+            style: "Classic",
+            category: "classic",
+            thumbnail: "https://images.unsplash.com/photo-1518622358385-8ea7d0794bf6?w=600&q=80",
+            images: [
+                "https://images.unsplash.com/photo-1518622358385-8ea7d0794bf6?w=1400&q=85",
+                "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=1400&q=85",
+                "https://images.unsplash.com/photo-1509551388413-e18d0ac5d495?w=1400&q=85",
+                "https://images.unsplash.com/photo-1562572159-4efc207f5aff?w=1400&q=85",
+                "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=1400&q=85",
+                "https://images.unsplash.com/photo-1485462537746-965f33f7f6a7?w=1400&q=85",
+                "https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=1400&q=85",
+                "https://images.unsplash.com/photo-1434389677669-e08b4cda3a00?w=1400&q=85",
+                "https://images.unsplash.com/photo-1549416878-b6807b1d9e2d?w=1400&q=85",
+                "https://images.unsplash.com/photo-1460723237483-7a6dc9d0b212?w=1400&q=85"
+            ]
+        },
+        {
+            id: 8,
+            name: "Sequin Evening Gown",
+            style: "Evening",
+            category: "evening",
+            thumbnail: "https://images.unsplash.com/photo-1562572159-4efc207f5aff?w=600&q=80",
+            images: [
+                "https://images.unsplash.com/photo-1562572159-4efc207f5aff?w=1400&q=85",
+                "https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=1400&q=85",
+                "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=1400&q=85",
+                "https://images.unsplash.com/photo-1518622358385-8ea7d0794bf6?w=1400&q=85",
+                "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=1400&q=85",
+                "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1400&q=85",
+                "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=1400&q=85",
+                "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=1400&q=85",
+                "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=1400&q=85",
+                "https://images.unsplash.com/photo-1485462537746-965f33f7f6a7?w=1400&q=85"
+            ]
+        },
+        {
+            id: 9,
+            name: "Tulle Dream Bridal",
+            style: "Wedding",
+            category: "wedding",
+            thumbnail: "https://images.unsplash.com/photo-1519741497674-611481863552?w=600&q=80",
+            images: [
+                "https://images.unsplash.com/photo-1519741497674-611481863552?w=1400&q=85",
+                "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=1400&q=85",
+                "https://images.unsplash.com/photo-1594552072238-b8a33785b261?w=1400&q=85",
+                "https://images.unsplash.com/photo-1607881020833-2e0b26474e20?w=1400&q=85",
+                "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=1400&q=85",
+                "https://images.unsplash.com/photo-1549416878-b6807b1d9e2d?w=1400&q=85",
+                "https://images.unsplash.com/photo-1460723237483-7a6dc9d0b212?w=1400&q=85",
+                "https://images.unsplash.com/photo-1519340241574-2cec6aef0c01?w=1400&q=85",
+                "https://images.unsplash.com/photo-1474552226712-ac0f0961a954?w=1400&q=85",
+                "https://images.unsplash.com/photo-1520854221256-17451cc331bf?w=1400&q=85"
+            ]
+        },
+        {
+            id: 10,
+            name: "Minimalist Slip Dress",
+            style: "Cocktail",
+            category: "cocktail",
+            thumbnail: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=600&q=80",
+            images: [
+                "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=1400&q=85",
+                "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1400&q=85",
+                "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=1400&q=85",
+                "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=1400&q=85",
+                "https://images.unsplash.com/photo-1485462537746-965f33f7f6a7?w=1400&q=85",
+                "https://images.unsplash.com/photo-1562572159-4efc207f5aff?w=1400&q=85",
+                "https://images.unsplash.com/photo-1509551388413-e18d0ac5d495?w=1400&q=85",
+                "https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=1400&q=85",
+                "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=1400&q=85",
+                "https://images.unsplash.com/photo-1434389677669-e08b4cda3a00?w=1400&q=85"
+            ]
+        },
+        {
+            id: 11,
+            name: "Grace Column Gown",
+            style: "Classic",
+            category: "classic",
+            thumbnail: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=600&q=80",
+            images: [
+                "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=1400&q=85",
+                "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=1400&q=85",
+                "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=1400&q=85",
+                "https://images.unsplash.com/photo-1485462537746-965f33f7f6a7?w=1400&q=85",
+                "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=1400&q=85",
+                "https://images.unsplash.com/photo-1518622358385-8ea7d0794bf6?w=1400&q=85",
+                "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=1400&q=85",
+                "https://images.unsplash.com/photo-1434389677669-e08b4cda3a00?w=1400&q=85",
+                "https://images.unsplash.com/photo-1549416878-b6807b1d9e2d?w=1400&q=85",
+                "https://images.unsplash.com/photo-1460723237483-7a6dc9d0b212?w=1400&q=85"
+            ]
+        },
+        {
+            id: 12,
+            name: "Embroidered Cocktail",
+            style: "Cocktail",
+            category: "cocktail",
+            thumbnail: "https://images.unsplash.com/photo-1509551388413-e18d0ac5d495?w=600&q=80",
+            images: [
+                "https://images.unsplash.com/photo-1509551388413-e18d0ac5d495?w=1400&q=85",
+                "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=1400&q=85",
+                "https://images.unsplash.com/photo-1518622358385-8ea7d0794bf6?w=1400&q=85",
+                "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1400&q=85",
+                "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=1400&q=85",
+                "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=1400&q=85",
+                "https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=1400&q=85",
+                "https://images.unsplash.com/photo-1562572159-4efc207f5aff?w=1400&q=85",
+                "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=1400&q=85",
+                "https://images.unsplash.com/photo-1594552072238-b8a33785b261?w=1400&q=85"
+            ]
+        }
+    ];
+
+    // ============================
+    // BUILD GRID
+    // ============================
+    const grid = document.getElementById('dressGrid');
+    const itemCountEl = document.getElementById('itemCount');
+
+    function buildGrid(filter = 'all') {
+        const filtered = filter === 'all' ? dresses : dresses.filter(d => d.category === filter);
+
+        grid.innerHTML = '';
+        filtered.forEach((dress, i) => {
+            const card = document.createElement('div');
+            card.className = 'dress-card aspect-[3/4] bg-[#171717] rounded-sm overflow-hidden';
+            card.dataset.dressId = dress.id;
+            card.style.animationDelay = `${i * 0.06}s`;
+            card.innerHTML = `
+                <div class="relative w-full h-full">
+                    <img src="${dress.thumbnail}" alt="${dress.name}"
+                         class="w-full h-full object-cover grayscale" loading="lazy">
+                    <div class="card-info absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent flex flex-col justify-end p-4 md:p-5">
+                        <p class="text-[9px] tracking-[0.3em] uppercase text-[#a3a3a3] mb-1">${dress.style}</p>
+                        <h3 class="font-serif text-sm md:text-base tracking-wide">${dress.name}</h3>
+                        <div class="flex items-center gap-1.5 mt-2 text-[9px] tracking-[0.2em] uppercase text-[#737373]">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.41a2.25 2.25 0 013.182 0l2.909 2.91"/>
+                            </svg>
+                            ${dress.images.length} views
+                        </div>
+                    </div>
+                </div>
+            `;
+            card.addEventListener('click', () => openSlideshow(dress));
+            grid.appendChild(card);
+        });
+
+        itemCountEl.textContent = `Showing ${filtered.length} of ${dresses.length} dresses`;
+    }
+
+    buildGrid();
+
+    // ============================
+    // CATEGORY FILTERING
+    // ============================
+    const filterBtns = document.querySelectorAll('.filter-btn');
+
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            filterBtns.forEach(b => {
+                b.classList.remove('active', 'text-white');
+                b.classList.add('text-[#737373]');
+            });
+            btn.classList.add('active', 'text-white');
+            btn.classList.remove('text-[#737373]');
+
+            // Fade out
+            grid.style.opacity = '0';
+            grid.style.transform = 'translateY(10px)';
+            grid.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+
+            setTimeout(() => {
+                buildGrid(btn.dataset.filter);
+                // Fade in
+                requestAnimationFrame(() => {
+                    grid.style.opacity = '1';
+                    grid.style.transform = 'translateY(0)';
+                });
+            }, 300);
+        });
+    });
+
+    // ============================
+    // SLIDESHOW
+    // ============================
+    const slideshow = document.getElementById('slideshow');
+    const ssMainImage = document.getElementById('ssMainImage');
+    const ssDressName = document.getElementById('ssDressName');
+    const ssDressStyle = document.getElementById('ssDressStyle');
+    const ssThumbStrip = document.getElementById('ssThumbStrip');
+    const ssCounter = document.getElementById('ssCounter');
+    const ssProgress = document.getElementById('ssProgress');
+    const ssClose = document.getElementById('ssClose');
+    const ssPrev = document.getElementById('ssPrev');
+    const ssNext = document.getElementById('ssNext');
+    const ssAutoplay = document.getElementById('ssAutoplay');
+    const ssPlayLabel = document.getElementById('ssPlayLabel');
+    const ssPlayIcon = document.getElementById('ssPlayIcon');
+
+    let currentDress = null;
+    let currentSlide = 0;
+    let autoplayTimer = null;
+    let isAutoplay = false;
+
+    function openSlideshow(dress) {
+        currentDress = dress;
+        currentSlide = 0;
+        isAutoplay = false;
+        clearInterval(autoplayTimer);
+
+        ssDressName.textContent = dress.name;
+        ssDressStyle.textContent = dress.style;
+
+        // Build thumbnail strip
+        ssThumbStrip.innerHTML = '';
+        dress.images.forEach((img, i) => {
+            const thumb = document.createElement('div');
+            thumb.className = `thumb-item w-12 h-16 md:w-14 md:h-20 rounded-sm overflow-hidden border-2 border-transparent cursor-pointer ${i === 0 ? 'active' : ''}`;
+            thumb.innerHTML = `<img src="${img}" alt="View ${i+1}" class="w-full h-full object-cover grayscale">`;
+            thumb.addEventListener('click', () => goToSlide(i));
+            ssThumbStrip.appendChild(thumb);
+        });
+
+        updateSlide(false);
+        slideshow.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+
+        // Preload all images
+        dress.images.forEach(src => {
+            const img = new Image();
+            img.src = src;
+        });
+    }
+
+    function goToSlide(index) {
+        if (index === currentSlide) return;
+        currentSlide = index;
+        updateSlide(true);
+    }
+
+    function updateSlide(animate = true) {
+        if (!currentDress) return;
+        const images = currentDress.images;
+
+        if (animate) {
+            ssMainImage.classList.remove('active');
+            ssMainImage.classList.add('exiting');
+
+            setTimeout(() => {
+                ssMainImage.src = images[currentSlide];
+                ssMainImage.classList.remove('exiting');
+                ssMainImage.classList.add('entering');
+
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        ssMainImage.classList.remove('entering');
+                        ssMainImage.classList.add('active');
+                    });
+                });
+            }, 250);
+        } else {
+            ssMainImage.src = images[currentSlide];
+            ssMainImage.classList.add('active');
+        }
+
+        // Update counter
+        ssCounter.textContent = `${String(currentSlide + 1).padStart(2, '0')} / ${String(images.length).padStart(2, '0')}`;
+
+        // Update progress
+        ssProgress.style.width = `${((currentSlide + 1) / images.length) * 100}%`;
+
+        // Update thumbnails
+        const thumbs = ssThumbStrip.querySelectorAll('.thumb-item');
+        thumbs.forEach((t, i) => {
+            t.classList.toggle('active', i === currentSlide);
+        });
+
+        // Scroll active thumb into view
+        const activeThumb = thumbs[currentSlide];
+        if (activeThumb) {
+            activeThumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
+    }
+
+    function nextSlide() {
+        if (!currentDress) return;
+        currentSlide = (currentSlide + 1) % currentDress.images.length;
+        updateSlide(true);
+    }
+
+    function prevSlide() {
+        if (!currentDress) return;
+        currentSlide = (currentSlide - 1 + currentDress.images.length) % currentDress.images.length;
+        updateSlide(true);
+    }
+
+    function closeSlideshow() {
+        slideshow.classList.add('hidden');
+        document.body.style.overflow = '';
+        clearInterval(autoplayTimer);
+        isAutoplay = false;
+        updateAutoplayUI();
+    }
+
+    function toggleAutoplay() {
+        isAutoplay = !isAutoplay;
+        if (isAutoplay) {
+            autoplayTimer = setInterval(nextSlide, 3500);
+        } else {
+            clearInterval(autoplayTimer);
+        }
+        updateAutoplayUI();
+    }
+
+    function updateAutoplayUI() {
+        if (isAutoplay) {
+            ssPlayLabel.textContent = 'Pause';
+            ssPlayIcon.classList.add('autoplay-active');
+            ssPlayIcon.innerHTML = `<svg class="w-1.5 h-1.5" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`;
+        } else {
+            ssPlayLabel.textContent = 'Auto';
+            ssPlayIcon.classList.remove('autoplay-active');
+            ssPlayIcon.innerHTML = `<svg class="w-1.5 h-1.5 ml-px" fill="currentColor" viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>`;
+        }
+    }
+
+    // Event listeners
+    ssClose.addEventListener('click', closeSlideshow);
+    ssPrev.addEventListener('click', prevSlide);
+    ssNext.addEventListener('click', nextSlide);
+    ssAutoplay.addEventListener('click', toggleAutoplay);
+
+    // Keyboard
+    document.addEventListener('keydown', (e) => {
+        if (slideshow.classList.contains('hidden')) return;
+        if (e.key === 'Escape') closeSlideshow();
+        if (e.key === 'ArrowLeft') prevSlide();
+        if (e.key === 'ArrowRight') nextSlide();
+        if (e.key === ' ') { e.preventDefault(); toggleAutoplay(); }
+    });
+
+    // Touch swipe (tablet)
+    let touchStartX = 0;
+    slideshow.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+
+    slideshow.addEventListener('touchend', (e) => {
+        const diff = touchStartX - e.changedTouches[0].screenX;
+        if (Math.abs(diff) > 60) {
+            diff > 0 ? nextSlide() : prevSlide();
+        }
+    }, { passive: true });
+
+    // Click on backdrop to close
+    slideshow.addEventListener('click', (e) => {
+        if (e.target === slideshow) closeSlideshow();
+    });
+
+    </script>
+</body>
+</html>
