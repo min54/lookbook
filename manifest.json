@@ -1,0 +1,20 @@
+{
+  "name": "MONO Dress Collection",
+  "short_name": "MONO",
+  "display": "fullscreen",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192x192/0a0a0a/ffffff?text=M",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://via.placeholder.com/512x512/0a0a0a/ffffff?text=M",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
