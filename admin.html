@@ -239,7 +239,9 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let currentShop = null;
 let currentDress = null;
-let dressImages = []; // {id, url, is_thumbnail, order, file?}
+let dressImages = [];
+let shopsMap = {};
+let dressesMap = {};
 
 // ===== LOGIN =====
 function login() {
@@ -271,19 +273,22 @@ async function loadShops() {
     const { data, error } = await sb.from('shops').select('*').order('created_at');
     const el = document.getElementById('shopList');
     if (error || !data?.length) { el.innerHTML = '<div class="empty">매장이 없어요</div>'; return; }
+    shopsMap = {};
+    data.forEach(s => shopsMap[s.id] = s);
     el.innerHTML = data.map(s => `
-        <div class="item ${currentShop?.id === s.id ? 'active' : ''}" onclick="selectShop(${JSON.stringify(s).replace(/"/g,'&quot;')})">
+        <div class="item ${currentShop?.id === s.id ? 'active' : ''}" onclick="selectShop('${s.id}')">
             <div class="item-name">${s.name}</div>
             <div class="item-sub">${s.domain || '도메인 미설정'}</div>
         </div>
     `).join('');
 }
 
-function selectShop(shop) {
-    currentShop = shop;
+function selectShop(shopId) {
+    currentShop = shopsMap[shopId];
+    if (!currentShop) return;
     currentDress = null;
     document.getElementById('addDressBtn').style.display = 'block';
-    document.getElementById('dressListTitle').textContent = shop.name;
+    document.getElementById('dressListTitle').textContent = currentShop.name;
     document.getElementById('formArea').innerHTML = '<div class="empty" style="padding-top:80px">드레스를 선택하거나 추가하세요</div>';
     loadShops();
     loadDresses();
@@ -331,20 +336,23 @@ async function loadDresses() {
     const { data, error } = await sb.from('dresses').select('*').eq('shop_id', currentShop.id).order('created_at');
     const el = document.getElementById('dressList');
     if (error || !data?.length) { el.innerHTML = '<div class="empty">드레스가 없어요</div>'; return; }
+    dressesMap = {};
+    data.forEach(d => dressesMap[d.id] = d);
     el.innerHTML = data.map(d => `
-        <div class="item ${currentDress?.id === d.id ? 'active' : ''}" onclick="selectDress(${JSON.stringify(d).replace(/"/g,'&quot;')})">
+        <div class="item ${currentDress?.id === d.id ? 'active' : ''}" onclick="selectDress('${d.id}')">
             <div class="item-name">${d.name}</div>
             <div class="item-sub">${d.style} · ${d.category}</div>
         </div>
     `).join('');
 }
 
-async function selectDress(dress) {
-    currentDress = dress;
+async function selectDress(dressId) {
+    currentDress = dressesMap[dressId];
+    if (!currentDress) return;
     loadDresses();
-    const { data: imgs } = await sb.from('dress_images').select('*').eq('dress_id', dress.id).order('"order"');
+    const { data: imgs } = await sb.from('dress_images').select('*').eq('dress_id', currentDress.id).order('"order"');
     dressImages = imgs || [];
-    renderDressForm(dress);
+    renderDressForm(currentDress);
 }
 
 function openAddDress() {
