@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESMERALDA — Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 3px; }
+        ::-webkit-scrollbar-track { background: #111; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+
+        body { background: #0a0a0a; color: #fff; min-height: 100vh; }
+
+        /* ===== LOGIN ===== */
+        #loginScreen {
+            position: fixed; inset: 0; background: #0a0a0a;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100;
+        }
+        #loginScreen h1 { font-family: 'Playfair Display', serif; font-size: 2rem; letter-spacing: 0.2em; margin-bottom: 8px; }
+        #loginScreen p { font-size: 10px; letter-spacing: 0.4em; text-transform: uppercase; color: #525252; margin-bottom: 40px; }
+        #loginScreen input {
+            background: #111; border: 1px solid #262626; color: #fff;
+            padding: 12px 20px; width: 280px; font-size: 13px; letter-spacing: 0.1em;
+            outline: none; margin-bottom: 12px; text-align: center;
+        }
+        #loginScreen input:focus { border-color: #444; }
+        #loginScreen button {
+            background: #fff; color: #0a0a0a; border: none; cursor: pointer;
+            padding: 12px 40px; font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase;
+            width: 280px; transition: background 0.3s;
+        }
+        #loginScreen button:hover { background: #e0e0e0; }
+        #loginError { color: #666; font-size: 11px; margin-top: 12px; letter-spacing: 0.1em; }
+
+        /* ===== LAYOUT ===== */
+        #app { display: none; height: 100vh; overflow: hidden; }
+
+        /* Top bar */
+        .topbar {
+            height: 56px; background: #0a0a0a; border-bottom: 1px solid #1a1a1a;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 24px; position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+        }
+        .topbar-title { font-family: 'Playfair Display', serif; font-size: 1.1rem; letter-spacing: 0.2em; }
+        .topbar-sub { font-size: 10px; letter-spacing: 0.4em; text-transform: uppercase; color: #525252; }
+        .topbar-logout { font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: #404040; cursor: pointer; }
+        .topbar-logout:hover { color: #fff; }
+
+        /* Three panel layout */
+        .panels { display: flex; height: 100vh; padding-top: 56px; }
+
+        /* Panel 1: Shops */
+        .panel { border-right: 1px solid #1a1a1a; overflow-y: auto; flex-shrink: 0; }
+        .panel-1 { width: 220px; }
+        .panel-2 { width: 280px; }
+        .panel-3 { flex: 1; overflow-y: auto; }
+
+        .panel-header {
+            padding: 20px 16px 12px;
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid #1a1a1a; position: sticky; top: 0; background: #0a0a0a; z-index: 10;
+        }
+        .panel-header h2 { font-size: 10px; letter-spacing: 0.35em; text-transform: uppercase; color: #525252; }
+
+        /* Items */
+        .item {
+            padding: 14px 16px; cursor: pointer; border-bottom: 1px solid #111;
+            transition: background 0.2s;
+        }
+        .item:hover { background: #111; }
+        .item.active { background: #161616; border-left: 2px solid #fff; }
+        .item-name { font-size: 13px; color: #e0e0e0; margin-bottom: 3px; }
+        .item-sub { font-size: 10px; color: #404040; letter-spacing: 0.15em; }
+
+        /* Buttons */
+        .btn-add {
+            background: none; border: 1px solid #262626; color: #737373; cursor: pointer;
+            padding: 5px 10px; font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase;
+            transition: all 0.2s;
+        }
+        .btn-add:hover { border-color: #555; color: #fff; }
+
+        .btn-primary {
+            background: #fff; color: #0a0a0a; border: none; cursor: pointer;
+            padding: 10px 24px; font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase;
+            transition: background 0.2s;
+        }
+        .btn-primary:hover { background: #e0e0e0; }
+        .btn-primary:disabled { background: #333; color: #666; cursor: not-allowed; }
+
+        .btn-danger {
+            background: none; border: 1px solid #2a1a1a; color: #664444; cursor: pointer;
+            padding: 5px 10px; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+            transition: all 0.2s;
+        }
+        .btn-danger:hover { border-color: #cc3333; color: #cc3333; }
+
+        .btn-ghost {
+            background: none; border: 1px solid #262626; color: #737373; cursor: pointer;
+            padding: 8px 16px; font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase;
+            transition: all 0.2s;
+        }
+        .btn-ghost:hover { border-color: #555; color: #fff; }
+
+        /* Form */
+        .form-wrap { padding: 24px; max-width: 640px; }
+        .form-title { font-family: 'Playfair Display', serif; font-size: 1.3rem; letter-spacing: 0.1em; margin-bottom: 6px; }
+        .form-sub { font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: #525252; margin-bottom: 32px; }
+
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: #525252; margin-bottom: 8px; }
+        .form-input {
+            width: 100%; background: #111; border: 1px solid #1e1e1e; color: #fff;
+            padding: 10px 14px; font-size: 13px; outline: none; transition: border-color 0.2s;
+        }
+        .form-input:focus { border-color: #333; }
+        .form-select {
+            width: 100%; background: #111; border: 1px solid #1e1e1e; color: #fff;
+            padding: 10px 14px; font-size: 13px; outline: none; cursor: pointer;
+            appearance: none;
+        }
+        .form-select option { background: #111; }
+
+        .form-row { display: flex; gap: 16px; }
+        .form-row .form-group { flex: 1; }
+
+        /* Image upload */
+        .image-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 16px; }
+        .image-slot {
+            aspect-ratio: 3/4; background: #111; border: 1px solid #1e1e1e;
+            position: relative; overflow: hidden; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: border-color 0.2s;
+        }
+        .image-slot:hover { border-color: #333; }
+        .image-slot img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(1); }
+        .image-slot .slot-num {
+            font-size: 10px; letter-spacing: 0.2em; color: #333;
+        }
+        .image-slot .slot-overlay {
+            position: absolute; inset: 0; background: rgba(0,0,0,0.5);
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+            opacity: 0; transition: opacity 0.2s;
+        }
+        .image-slot:hover .slot-overlay { opacity: 1; }
+        .slot-overlay-btn {
+            font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+            color: #fff; cursor: pointer; padding: 4px 8px; border: 1px solid #fff;
+            background: none;
+        }
+        .image-slot.is-thumb { border-color: #555; }
+        .image-slot.is-thumb::after {
+            content: 'THUMB'; position: absolute; top: 4px; left: 4px;
+            font-size: 8px; letter-spacing: 0.15em; color: #fff; background: rgba(0,0,0,0.7);
+            padding: 2px 4px;
+        }
+        .upload-input { display: none; }
+
+        /* Divider */
+        .divider { border: none; border-top: 1px solid #1a1a1a; margin: 24px 0; }
+
+        /* Empty state */
+        .empty { padding: 40px 16px; text-align: center; color: #333; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; }
+
+        /* Toast */
+        #toast {
+            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+            background: #fff; color: #0a0a0a; padding: 10px 24px;
+            font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+            opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 200;
+        }
+        #toast.show { opacity: 1; }
+
+        /* Loading */
+        .loading { color: #333; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; padding: 20px 16px; }
+    </style>
+</head>
+<body>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<!-- Login -->
+<div id="loginScreen">
+    <h1>ESMERALDA</h1>
+    <p>Admin</p>
+    <input type="password" id="pwInput" placeholder="Password" onkeydown="if(event.key==='Enter')login()">
+    <button onclick="login()">Enter</button>
+    <p id="loginError"></p>
+</div>
+
+<!-- App -->
+<div id="app">
+    <div class="topbar">
+        <div style="display:flex;align-items:center;gap:16px">
+            <span class="topbar-title">ESMERALDA</span>
+            <span class="topbar-sub">Admin</span>
+        </div>
+        <span class="topbar-logout" onclick="logout()">Logout</span>
+    </div>
+
+    <div class="panels">
+        <!-- Panel 1: Shops -->
+        <div class="panel panel-1">
+            <div class="panel-header">
+                <h2>매장</h2>
+                <button class="btn-add" onclick="openAddShop()">+ 추가</button>
+            </div>
+            <div id="shopList"><div class="loading">불러오는 중...</div></div>
+        </div>
+
+        <!-- Panel 2: Dresses -->
+        <div class="panel panel-2">
+            <div class="panel-header">
+                <h2 id="dressListTitle">드레스</h2>
+                <button class="btn-add" id="addDressBtn" onclick="openAddDress()" style="display:none">+ 추가</button>
+            </div>
+            <div id="dressList"><div class="empty">매장을 선택하세요</div></div>
+        </div>
+
+        <!-- Panel 3: Form -->
+        <div class="panel panel-3">
+            <div id="formArea">
+                <div class="empty" style="padding-top:80px">드레스를 선택하거나 추가하세요</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://cdqstqlpaihvexbmjdfd.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkcXN0cWxwYWlodmV4Ym1qZGZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NDQ1NDQsImV4cCI6MjA4OTIyMDU0NH0.4c-ROHG1Qy0s5JPHuBgPpOxbE_j1EljDDswBlTe7NaM';
+const ADMIN_PW = 'esmeralda2024';
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentShop = null;
+let currentDress = null;
+let dressImages = []; // {id, url, is_thumbnail, order, file?}
+
+// ===== LOGIN =====
+function login() {
+    const pw = document.getElementById('pwInput').value;
+    if (pw === ADMIN_PW) {
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+        loadShops();
+    } else {
+        document.getElementById('loginError').textContent = '비밀번호가 틀렸어요';
+    }
+}
+function logout() {
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('pwInput').value = '';
+}
+
+// ===== TOAST =====
+function toast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ===== SHOPS =====
+async function loadShops() {
+    const { data, error } = await sb.from('shops').select('*').order('created_at');
+    const el = document.getElementById('shopList');
+    if (error || !data?.length) { el.innerHTML = '<div class="empty">매장이 없어요</div>'; return; }
+    el.innerHTML = data.map(s => `
+        <div class="item ${currentShop?.id === s.id ? 'active' : ''}" onclick="selectShop(${JSON.stringify(s).replace(/"/g,'&quot;')})">
+            <div class="item-name">${s.name}</div>
+            <div class="item-sub">${s.domain || '도메인 미설정'}</div>
+        </div>
+    `).join('');
+}
+
+function selectShop(shop) {
+    currentShop = shop;
+    currentDress = null;
+    document.getElementById('addDressBtn').style.display = 'block';
+    document.getElementById('dressListTitle').textContent = shop.name;
+    document.getElementById('formArea').innerHTML = '<div class="empty" style="padding-top:80px">드레스를 선택하거나 추가하세요</div>';
+    loadShops();
+    loadDresses();
+}
+
+function openAddShop() {
+    currentShop = null;
+    currentDress = null;
+    document.getElementById('shopList').querySelectorAll('.item').forEach(i => i.classList.remove('active'));
+    document.getElementById('dressList').innerHTML = '<div class="empty">매장을 선택하세요</div>';
+    document.getElementById('addDressBtn').style.display = 'none';
+    document.getElementById('formArea').innerHTML = `
+        <div class="form-wrap">
+            <div class="form-title">새 매장</div>
+            <div class="form-sub">Shop</div>
+            <div class="form-group">
+                <label class="form-label">매장명</label>
+                <input class="form-input" id="shopName" placeholder="예: Esmeralda 강남점">
+            </div>
+            <div class="form-group">
+                <label class="form-label">도메인</label>
+                <input class="form-input" id="shopDomain" placeholder="예: esmeralda-gangnam.netlify.app">
+            </div>
+            <div style="display:flex;gap:12px;margin-top:8px">
+                <button class="btn-primary" onclick="saveShop()">저장</button>
+            </div>
+        </div>
+    `;
+}
+
+async function saveShop() {
+    const name = document.getElementById('shopName').value.trim();
+    const domain = document.getElementById('shopDomain').value.trim();
+    if (!name) { toast('매장명을 입력하세요'); return; }
+    const { error } = await sb.from('shops').insert({ name, domain });
+    if (error) { toast('오류: ' + error.message); return; }
+    toast('매장이 추가됐어요');
+    loadShops();
+    document.getElementById('formArea').innerHTML = '<div class="empty" style="padding-top:80px">드레스를 선택하거나 추가하세요</div>';
+}
+
+// ===== DRESSES =====
+async function loadDresses() {
+    if (!currentShop) return;
+    const { data, error } = await sb.from('dresses').select('*').eq('shop_id', currentShop.id).order('created_at');
+    const el = document.getElementById('dressList');
+    if (error || !data?.length) { el.innerHTML = '<div class="empty">드레스가 없어요</div>'; return; }
+    el.innerHTML = data.map(d => `
+        <div class="item ${currentDress?.id === d.id ? 'active' : ''}" onclick="selectDress(${JSON.stringify(d).replace(/"/g,'&quot;')})">
+            <div class="item-name">${d.name}</div>
+            <div class="item-sub">${d.style} · ${d.category}</div>
+        </div>
+    `).join('');
+}
+
+async function selectDress(dress) {
+    currentDress = dress;
+    loadDresses();
+    const { data: imgs } = await sb.from('dress_images').select('*').eq('dress_id', dress.id).order('"order"');
+    dressImages = imgs || [];
+    renderDressForm(dress);
+}
+
+function openAddDress() {
+    if (!currentShop) return;
+    currentDress = null;
+    dressImages = [];
+    renderDressForm(null);
+}
+
+function renderDressForm(dress) {
+    const isNew = !dress;
+    document.getElementById('formArea').innerHTML = `
+        <div class="form-wrap">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:32px">
+                <div>
+                    <div class="form-title">${isNew ? '새 드레스' : dress.name}</div>
+                    <div class="form-sub">${currentShop.name}</div>
+                </div>
+                ${!isNew ? `<button class="btn-danger" onclick="deleteDress('${dress.id}')">삭제</button>` : ''}
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">드레스명</label>
+                    <input class="form-input" id="dressName" placeholder="예: Midnight Satin Dress" value="${dress?.name || ''}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">스타일명 (표시용)</label>
+                    <input class="form-input" id="dressStyle" placeholder="예: Evening" value="${dress?.style || ''}">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">카테고리 (필터용)</label>
+                <select class="form-select" id="dressCategory">
+                    <option value="wedding" ${dress?.category==='wedding'?'selected':''}>Wedding</option>
+                    <option value="evening" ${dress?.category==='evening'?'selected':''}>Evening</option>
+                    <option value="cocktail" ${dress?.category==='cocktail'?'selected':''}>Cocktail</option>
+                    <option value="classic" ${dress?.category==='classic'?'selected':''}>Classic</option>
+                </select>
+            </div>
+
+            <hr class="divider">
+
+            <div class="form-group">
+                <label class="form-label">이미지 (최대 10장 · 첫 번째가 썸네일)</label>
+                <div class="image-grid" id="imageGrid"></div>
+                <input type="file" class="upload-input" id="fileInput" accept="image/*" multiple onchange="handleFileUpload(event)">
+                <button class="btn-ghost" onclick="document.getElementById('fileInput').click()">+ 이미지 추가</button>
+            </div>
+
+            <hr class="divider">
+
+            <div style="display:flex;gap:12px">
+                <button class="btn-primary" id="saveBtn" onclick="saveDress()">저장</button>
+                ${!isNew ? `<button class="btn-ghost" onclick="openAddDress()">새 드레스</button>` : ''}
+            </div>
+        </div>
+    `;
+    renderImageGrid();
+}
+
+function renderImageGrid() {
+    const grid = document.getElementById('imageGrid');
+    if (!grid) return;
+    let html = '';
+    for (let i = 0; i < 10; i++) {
+        const img = dressImages[i];
+        if (img) {
+            const isThumb = i === 0;
+            html += `
+                <div class="image-slot ${isThumb ? 'is-thumb' : ''}">
+                    <img src="${img.url}" alt="">
+                    <div class="slot-overlay">
+                        <button class="slot-overlay-btn" onclick="removeImage(${i})">삭제</button>
+                    </div>
+                </div>
+            `;
+        } else {
+            html += `<div class="image-slot" onclick="document.getElementById('fileInput').click()"><span class="slot-num">${i+1}</span></div>`;
+        }
+    }
+    grid.innerHTML = html;
+}
+
+async function handleFileUpload(event) {
+    const files = Array.from(event.target.files);
+    const remaining = 10 - dressImages.length;
+    if (remaining <= 0) { toast('최대 10장까지 업로드 가능해요'); return; }
+    const toUpload = files.slice(0, remaining);
+
+    toast('업로드 중...');
+    for (const file of toUpload) {
+        const ext = file.name.split('.').pop();
+        const path = `${Date.now()}_${Math.random().toString(36).substr(2,6)}.${ext}`;
+        const { data, error } = await sb.storage.from('dresses').upload(path, file, { upsert: true });
+        if (error) { toast('업로드 실패: ' + error.message); continue; }
+        const { data: urlData } = sb.storage.from('dresses').getPublicUrl(path);
+        dressImages.push({ url: urlData.publicUrl, is_thumbnail: dressImages.length === 0, order: dressImages.length, _new: true });
+    }
+    renderImageGrid();
+    toast('업로드 완료');
+    event.target.value = '';
+}
+
+function removeImage(index) {
+    dressImages.splice(index, 1);
+    dressImages.forEach((img, i) => { img.order = i; img.is_thumbnail = i === 0; });
+    renderImageGrid();
+}
+
+async function saveDress() {
+    const name = document.getElementById('dressName').value.trim();
+    const style = document.getElementById('dressStyle').value.trim();
+    const category = document.getElementById('dressCategory').value;
+    if (!name || !style) { toast('드레스명과 스타일명을 입력하세요'); return; }
+
+    document.getElementById('saveBtn').disabled = true;
+
+    let dressId = currentDress?.id;
+    if (!dressId) {
+        const { data, error } = await sb.from('dresses').insert({ shop_id: currentShop.id, name, style, category }).select().single();
+        if (error) { toast('오류: ' + error.message); document.getElementById('saveBtn').disabled = false; return; }
+        dressId = data.id;
+        currentDress = data;
+    } else {
+        await sb.from('dresses').update({ name, style, category }).eq('id', dressId);
+    }
+
+    // 기존 이미지 삭제 후 재저장
+    await sb.from('dress_images').delete().eq('dress_id', dressId);
+    for (let i = 0; i < dressImages.length; i++) {
+        await sb.from('dress_images').insert({
+            dress_id: dressId,
+            url: dressImages[i].url,
+            is_thumbnail: i === 0,
+            order: i
+        });
+    }
+
+    toast('저장됐어요');
+    document.getElementById('saveBtn').disabled = false;
+    loadDresses();
+}
+
+async function deleteDress(id) {
+    if (!confirm('이 드레스를 삭제할까요?')) return;
+    await sb.from('dress_images').delete().eq('dress_id', id);
+    await sb.from('dresses').delete().eq('id', id);
+    currentDress = null;
+    dressImages = [];
+    toast('삭제됐어요');
+    loadDresses();
+    document.getElementById('formArea').innerHTML = '<div class="empty" style="padding-top:80px">드레스를 선택하거나 추가하세요</div>';
+}
+</script>
+</body>
+</html>
