@@ -335,7 +335,8 @@
     // ============================
     let currentShopId = null;
 
-    function getCacheKey(shopId) { return 'dlookbook_cache_' + (shopId || 'all'); }
+    const CACHE_VERSION = 'v2';
+    function getCacheKey(shopId) { return 'dlookbook_cache_' + CACHE_VERSION + '_' + (shopId || 'all'); }
 
     function loadCache(shopId) {
         try { return JSON.parse(localStorage.getItem(getCacheKey(shopId))); } catch { return null; }
