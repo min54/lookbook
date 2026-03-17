@@ -331,57 +331,95 @@
     }
 
     // ============================
-    // LOAD FROM SUPABASE
+    // LOAD FROM SUPABASE (캐시 + 백그라운드 업데이트)
     // ============================
-    async function loadDressesFromDB() {
-        // 현재 도메인과 일치하는 매장 찾기
+    let currentShopId = null;
+
+    function getCacheKey(shopId) { return 'dlookbook_cache_' + (shopId || 'all'); }
+
+    function loadCache(shopId) {
+        try { return JSON.parse(localStorage.getItem(getCacheKey(shopId))); } catch { return null; }
+    }
+
+    function saveCache(shopId, data) {
+        localStorage.setItem(getCacheKey(shopId), JSON.stringify({ ts: Date.now(), dresses: data }));
+    }
+
+    async function resolveShop() {
         const hostname = window.location.hostname;
         const { data: shops } = await sb.from('shops').select('*');
-
-        let shopId = null;
-        if (shops?.length) {
-            const matched = shops.find(s => {
-                if (!s.domain) return false;
-                try {
-                    const h = new URL(s.domain.includes('://') ? s.domain : 'https://' + s.domain).hostname;
-                    return h === hostname;
-                } catch { return s.domain.includes(hostname); }
-            });
-            if (matched) {
-                shopId = matched.id;
-                const shopName = matched.name.toUpperCase();
-                document.getElementById('splashLogo').textContent = shopName;
-                document.getElementById('headerLogo').textContent = shopName;
-                document.title = matched.name + ' — Dress Collection';
-
-                // iOS 홈화면 이름 동적 교체 (Android는 Edge Function의 manifest.json이 처리)
-                document.querySelector('meta[name="apple-mobile-web-app-title"]').content = matched.name;
-            }
+        if (!shops?.length) return null;
+        const matched = shops.find(s => {
+            if (!s.domain) return false;
+            try {
+                const h = new URL(s.domain.includes('://') ? s.domain : 'https://' + s.domain).hostname;
+                return h === hostname;
+            } catch { return s.domain.includes(hostname); }
+        });
+        if (matched) {
+            const shopName = matched.name.toUpperCase();
+            document.getElementById('splashLogo').textContent = shopName;
+            document.getElementById('headerLogo').textContent = shopName;
+            document.title = matched.name + ' — Dress Collection';
+            document.querySelector('meta[name="apple-mobile-web-app-title"]').content = matched.name;
         }
+        return matched || null;
+    }
 
-        // 드레스 불러오기
-        let dressQuery = sb.from('dresses').select('*').order('created_at');
-        if (shopId) dressQuery = dressQuery.eq('shop_id', shopId);
-        const { data: dressData } = await dressQuery;
-
-        if (!dressData?.length) {
-            document.getElementById('loadingMsg').textContent = '등록된 드레스가 없어요';
-            return;
-        }
-
-        // 이미지 한 번에 불러오기
+    async function fetchDresses(shopId) {
+        let q = sb.from('dresses').select('*').order('sort_order').order('created_at');
+        if (shopId) q = q.eq('shop_id', shopId);
+        const { data: dressData } = await q;
+        if (!dressData?.length) return [];
         const ids = dressData.map(d => d.id);
         const { data: imgData } = await sb.from('dress_images').select('*').in('dress_id', ids).order('order');
-
-        dresses = dressData.map(d => {
+        return dressData.map(d => {
             const imgs = (imgData || []).filter(img => img.dress_id === d.id).sort((a, b) => a.order - b.order);
             const thumb = imgs.find(img => img.is_thumbnail)?.url || imgs[0]?.url || '';
             return { id: d.id, name: d.name, style: d.style, category: d.category, thumbnail: thumb, images: imgs.map(i => i.url) };
         }).filter(d => d.images.length > 0);
+    }
 
-        const msg = document.getElementById('loadingMsg');
-        if (msg) msg.remove();
-        buildGrid();
+    async function getLatestUpdatedAt(shopId) {
+        // 드레스 또는 이미지 중 가장 최근 변경 시간만 가볍게 조회
+        let q = sb.from('dresses').select('created_at').order('created_at', { ascending: false }).limit(1);
+        if (shopId) q = q.eq('shop_id', shopId);
+        const { data } = await q;
+        return data?.[0]?.created_at || null;
+    }
+
+    async function loadDressesFromDB() {
+        const shop = await resolveShop();
+        currentShopId = shop?.id || null;
+
+        const cache = loadCache(currentShopId);
+
+        // 1. 캐시 있으면 즉시 표시
+        if (cache?.dresses?.length) {
+            dresses = cache.dresses;
+            const msg = document.getElementById('loadingMsg');
+            if (msg) msg.remove();
+            buildGrid();
+        }
+
+        // 2. 백그라운드에서 업데이트 여부 확인
+        const latestAt = await getLatestUpdatedAt(currentShopId);
+        const cacheOutdated = !cache || cache.ts < new Date(latestAt).getTime();
+
+        if (cacheOutdated) {
+            const fresh = await fetchDresses(currentShopId);
+            if (!fresh.length) {
+                if (!cache?.dresses?.length) {
+                    document.getElementById('loadingMsg').textContent = '등록된 드레스가 없어요';
+                }
+                return;
+            }
+            saveCache(currentShopId, fresh);
+            dresses = fresh;
+            const msg = document.getElementById('loadingMsg');
+            if (msg) msg.remove();
+            buildGrid();
+        }
     }
 
     loadDressesFromDB();
