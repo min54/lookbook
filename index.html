@@ -380,12 +380,12 @@
         }).filter(d => d.images.length > 0);
     }
 
-    async function getLatestUpdatedAt(shopId) {
-        // 드레스 또는 이미지 중 가장 최근 변경 시간만 가볍게 조회
-        let q = sb.from('dresses').select('created_at').order('created_at', { ascending: false }).limit(1);
+    async function getDBSignature(shopId) {
+        // 최신 created_at + 드레스 개수를 함께 체크 (추가·삭제 모두 감지)
+        let q = sb.from('dresses').select('created_at', { count: 'exact' }).order('created_at', { ascending: false }).limit(1);
         if (shopId) q = q.eq('shop_id', shopId);
-        const { data } = await q;
-        return data?.[0]?.created_at || null;
+        const { data, count } = await q;
+        return { latestAt: data?.[0]?.created_at || null, count: count || 0 };
     }
 
     async function loadDressesFromDB() {
@@ -402,9 +402,11 @@
             buildGrid();
         }
 
-        // 2. 백그라운드에서 업데이트 여부 확인
-        const latestAt = await getLatestUpdatedAt(currentShopId);
-        const cacheOutdated = !cache || cache.ts < new Date(latestAt).getTime();
+        // 2. 백그라운드에서 업데이트 여부 확인 (추가·삭제 모두 감지)
+        const { latestAt, count } = await getDBSignature(currentShopId);
+        const cacheOutdated = !cache
+            || cache.ts < new Date(latestAt).getTime()
+            || cache.dresses.length !== count;  // 개수 달라지면 (삭제 포함) 갱신
 
         if (cacheOutdated) {
             const fresh = await fetchDresses(currentShopId);
