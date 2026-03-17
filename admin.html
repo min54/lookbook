@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ESMERALDA — Admin</title>
+    <title>D-lookbook — Admin</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -189,7 +189,7 @@
 
 <!-- Login -->
 <div id="loginScreen">
-    <h1>ESMERALDA</h1>
+    <h1>D-lookbook</h1>
     <p>Admin</p>
     <input type="password" id="pwInput" placeholder="Password" onkeydown="if(event.key==='Enter')login()">
     <button onclick="login()">Enter</button>
@@ -200,7 +200,7 @@
 <div id="app">
     <div class="topbar">
         <div style="display:flex;align-items:center;gap:16px">
-            <span class="topbar-title">ESMERALDA</span>
+            <span class="topbar-title">D-lookbook</span>
             <span class="topbar-sub">Admin</span>
         </div>
         <span class="topbar-logout" onclick="logout()">Logout</span>
@@ -281,8 +281,13 @@ async function loadShops() {
     data.forEach(s => shopsMap[s.id] = s);
     el.innerHTML = data.map(s => `
         <div class="item ${currentShop?.id === s.id ? 'active' : ''}" onclick="selectShop('${s.id}')">
-            <div class="item-name">${s.name}</div>
-            <div class="item-sub">${s.domain || '도메인 미설정'}</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+                <div style="min-width:0">
+                    <div class="item-name">${s.name}</div>
+                    <div class="item-sub">${s.domain || '도메인 미설정'}</div>
+                </div>
+                <button onclick="event.stopPropagation();openEditShop('${s.id}')" style="flex-shrink:0;background:none;border:1px solid #333;color:#888;font-size:11px;padding:3px 8px;border-radius:4px;cursor:pointer;">편집</button>
+            </div>
         </div>
     `).join('');
 }
@@ -330,6 +335,45 @@ async function saveShop() {
     const { error } = await sb.from('shops').insert({ name, domain });
     if (error) { toast('오류: ' + error.message); return; }
     toast('매장이 추가됐어요');
+    loadShops();
+    document.getElementById('formArea').innerHTML = '<div class="empty" style="padding-top:80px">드레스를 선택하거나 추가하세요</div>';
+}
+
+function openEditShop(shopId) {
+    const s = shopsMap[shopId];
+    if (!s) return;
+    document.getElementById('formArea').innerHTML = `
+        <div class="form-wrap">
+            <div class="form-title">매장 편집</div>
+            <div class="form-sub">Shop</div>
+            <div class="form-group">
+                <label class="form-label">매장명</label>
+                <input class="form-input" id="editShopName" value="${s.name}">
+            </div>
+            <div class="form-group">
+                <label class="form-label">도메인</label>
+                <input class="form-input" id="editShopDomain" value="${s.domain || ''}">
+            </div>
+            <div style="display:flex;gap:12px;margin-top:8px">
+                <button class="btn-primary" onclick="updateShop('${s.id}')">저장</button>
+            </div>
+        </div>
+    `;
+}
+
+async function updateShop(shopId) {
+    const name = document.getElementById('editShopName').value.trim();
+    const domain = document.getElementById('editShopDomain').value.trim();
+    if (!name) { toast('매장명을 입력하세요'); return; }
+    const { error } = await sb.from('shops').update({ name, domain }).eq('id', shopId);
+    if (error) { toast('오류: ' + error.message); return; }
+    shopsMap[shopId] = { ...shopsMap[shopId], name, domain };
+    if (currentShop?.id === shopId) {
+        currentShop.name = name;
+        currentShop.domain = domain;
+        document.getElementById('dressListTitle').textContent = name;
+    }
+    toast('매장 정보가 수정됐어요');
     loadShops();
     document.getElementById('formArea').innerHTML = '<div class="empty" style="padding-top:80px">드레스를 선택하거나 추가하세요</div>';
 }
